@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>HYER Landing Clone</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+body{
+    min-height:100vh;
+    background: linear-gradient(120deg,#7e9bb4,#c9d8e2,#f2f4f7);
+    overflow:hidden;
+}
+
+/* ---------------- NAVBAR ---------------- */
+nav{
+    position:absolute;
+    top:0;
+    width:100%;
+    padding:30px 70px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.nav-links{
+    display:flex;
+    align-items:center;
+    gap:40px;
+    font-size:18px;
+}
+
+.nav-links a{
+    text-decoration:none;
+    color:#111;
+    opacity:0.9;
+}
+
+.menu-btn{
+    width:44px;
+    height:44px;
+    border-radius:50%;
+    background:#0c0f12;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.menu-btn:hover{
+    transform:scale(1.1);
+}
+
+/* ---------------- HERO ---------------- */
+.hero{
+    height:100vh;
+    padding:120px 90px;
+    position:relative;
+}
+
+/* BIG LOGO */
+.brand{
+    font-size:300px;
+    font-weight:900;
+    letter-spacing:-20px;
+    color:#020b10;
+    opacity:0.95;
+}
+
+.brand sup{
+    font-size:70px;
+    vertical-align:top;
+}
+
+/* RIGHT TEXT */
+.right-text{
+    position:absolute;
+    right:120px;
+    top:260px;
+}
+
+.right-text h1{
+    font-size:64px;
+    line-height:1.1;
+    font-weight:700;
+    color:#020b10;
+}
+
+
+
+
+
+@keyframes movePlane {
+    0%   { transform: translate(0%, -50%); }
+    50%  { transform: translate(70vw, -50%); }
+    100% { transform: translate(0%, -50%); }
+}
+
+@keyframes flipPlane {
+    0%, 49% {
+        transform: rotate(-8deg) scaleX(1);
+    }
+
+    50%, 100% {
+        transform: rotate(-8deg) scaleX(-1);
+    }
+}
+
+
+
+/* BOTTOM */
+.bottom{
+    position:absolute;
+    bottom:60px;
+    left:90px;
+    right:90px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.bottom p{
+    font-size:22px;
+    font-weight:600;
+}
+
+.buttons{
+    display:flex;
+    gap:20px;
+}
+
+.btn{
+    padding:16px 34px;
+    border-radius:40px;
+    border:none;
+    background:#020b10;
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.btn:hover{
+    transform:translateY(-3px);
+    opacity:0.9;
+}
+
+/* ---------------- RESPONSIVE ---------------- */
+@media(max-width:1200px){
+    .brand{ font-size:180px; }
+    .plane{ width:520px; }
+    .right-text{ right:40px; }
+}
+
+@media(max-width:768px){
+    nav{ padding:20px; }
+    .hero{ padding:100px 30px; }
+    .brand{ font-size:120px; letter-spacing:-8px; }
+    .right-text h1{ font-size:38px; }
+    .plane{ width:380px; }
+    .bottom{ flex-direction:column; gap:20px; text-align:center; }
+}
+.plane-wrap{
+    position:absolute;
+    left:9vw;             
+    top:50%;
+    width:1100px;
+    transform: translate(0, -50%);
+    animation: movePlane 7s ease-in-out infinite;
+}
+
+.plane{
+    width: 1750px;
+    pointer-events:none;
+    filter: drop-shadow(0px 30px 40px rgba(0,0,0,0.25));
+    animation: flipPlane 7s ease-in-out infinite;
+}
+
+
+</style>
+</head>
+
+<body>
+
+<nav>
+    <div></div>
+
+    <div class="nav-links">
+        <a href="#">Solutions</a>
+        <a href="#">About us</a>
+        <a href="#">Contact</a>
+        <div class="menu-btn">☰</div>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="brand">VITC<sup>®</sup></div>
+
+    <div class="right-text">
+        <h1>Personalised<br>Aviation</h1>
+    </div>
+
+    <!-- AIRPLANE IMAGE -->
+    <div class="plane-wrap">
+    <img 
+        class="plane"
+        src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiKQW9FkBC4Qjmt6hOEOeKLttT0VTidymIH4OtMxIGxt4X5j6ZmhnSo_MsNDgSSpyIxwTuYPneNpGkhEwW06r4TT-3pipMTHmkLDkZ5VZFYIj3hYqaiOorNIDwZgwgggzG32pJxdfRzusNd0vRjpABnufLDzrtRYuxlDln3kcrv4s4yUzy1Gq-87CsrzYQ/s1920/Adobe%20Express%20-%20file.png"
+        alt="Plane">
+</div>
+
+
+    <div class="bottom">
+        <p>More flexibility, freedom and choice!</p>
+
+        <div class="buttons">
+            <button class="btn">All Solutions</button>
+            <button class="btn">Ownership</button>
+        </div>
+    </div>
+</section>
+
+<script>
+// Small hover parallax effect
+document.addEventListener("mousemove", e=>{
+    const plane = document.querySelector(".plane");
+    const x = (window.innerWidth/2 - e.pageX)/40;
+    const y = (window.innerHeight/2 - e.pageY)/40;
+    plane.style.transform = `translate(-50%,-50%) translate(${x}px,${y}px)`;
+});
+</script>
+
+</body>
+</html>
