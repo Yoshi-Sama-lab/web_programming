@@ -409,7 +409,75 @@ body[data-step="3"] .scan-line {
         </div>
     </div>
 </section>
+<div class="keyboard-legend">
+    <div class="key-row">
+        <div class="keys-group">
+            <span class="k-btn">←</span>
+            <span class="k-btn">→</span>
+        </div>
+        <span class="k-desc">CHANGE JET</span>
+    </div>
+    <div class="key-row">
+        <span class="k-btn wide">ENTER</span>
+        <span class="k-desc">SELECT</span>
+    </div>
+    <div class="key-row" id="key-esc" style="opacity:0.3"> <span class="k-btn wide">ESC</span>
+        <span class="k-desc">BACK</span>
+    </div>
+</div>
 
+<style>
+/* LEGEND CONTAINER */
+.keyboard-legend {
+    position: absolute;
+    bottom: 40px;
+    right: 5%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 100;
+    pointer-events: none; /* Let clicks pass through */
+    transition: opacity 0.5s;
+}
+
+/* Hide legend completely in Step 3 (Takeoff) */
+body[data-step="3"] .keyboard-legend { opacity: 0; }
+
+.key-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    color: rgba(255,255,255,0.5);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    transition: 0.3s;
+}
+
+/* THE KEY BUTTONS */
+.k-btn {
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 6px;
+    padding: 4px 8px;
+    min-width: 24px;
+    text-align: center;
+    color: white;
+    font-family: monospace;
+    font-size: 12px;
+    background: rgba(255,255,255,0.05);
+    box-shadow: 0 2px 0 rgba(255,255,255,0.1); /* 3D effect */
+}
+.k-btn.wide { padding: 4px 12px; }
+
+/* Active Key State (JS will toggle this) */
+.k-btn.pressed {
+    background: white;
+    color: black;
+    transform: translateY(2px);
+    box-shadow: none;
+}
+</style>
 <script>
     // --- DATA ---
     const planes = [
@@ -546,7 +614,66 @@ document.getElementById('bookingForm').addEventListener('submit', function(e) {
 
     // Run
     init();
+/* --- KEYBOARD CONTROLS --- */
+document.addEventListener('keydown', (e) => {
+    // 1. Get current step (default to "1" if null)
+    const currentStep = document.body.getAttribute('data-step') || "1";
 
+    // 2. Visual Feedback (Highlight the key)
+    highlightKey(e.key);
+
+    // 3. Logic Router
+    if (currentStep === "1") {
+        // --- HANGAR MODE ---
+        if (e.key === "ArrowLeft") cyclePlane(-1);
+        if (e.key === "ArrowRight") cyclePlane(1);
+        if (e.key === "Enter") goToStep2();
+    } 
+    else if (currentStep === "2") {
+        // --- FORM MODE ---
+        if (e.key === "Escape") goToStep1();
+    }
+});
+
+document.addEventListener('keyup', (e) => {
+    removeHighlight(e.key);
+});
+
+// --- HELPER: Visual Key Press Effect ---
+function highlightKey(key) {
+    // Map real keys to our UI elements
+    let visualKey = null;
+    if (key === "ArrowLeft") visualKey = document.querySelectorAll('.k-btn')[0];
+    if (key === "ArrowRight") visualKey = document.querySelectorAll('.k-btn')[1];
+    if (key === "Enter") visualKey = document.querySelectorAll('.k-btn')[2];
+    if (key === "Escape") visualKey = document.querySelectorAll('.k-btn')[3];
+
+    if (visualKey) visualKey.classList.add('pressed');
+}
+
+function removeHighlight(key) {
+    // Remove the class to pop button back up
+    const btns = document.querySelectorAll('.k-btn');
+    btns.forEach(btn => btn.classList.remove('pressed'));
+}
+
+// --- OPTIONAL: Update Legend Opacity based on Step ---
+// We hook into your existing goToStep functions to dim irrelevant keys
+const originalGoToStep2 = goToStep2;
+goToStep2 = function() {
+    originalGoToStep2();
+    // Dim Arrows/Enter, Highlight Esc
+    document.querySelector('.keyboard-legend').style.opacity = "0.5"; 
+    document.getElementById('key-esc').style.opacity = "1";
+}
+
+const originalGoToStep1 = goToStep1;
+goToStep1 = function() {
+    originalGoToStep1();
+    // Highlight Arrows/Enter, Dim Esc
+    document.querySelector('.keyboard-legend').style.opacity = "1";
+    document.getElementById('key-esc').style.opacity = "0.3";
+}
 </script>
 </body>
 </html>
