@@ -2,291 +2,551 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>HYER Landing Clone</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<title>HYER - The Full Journey</title>
 <style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family: "Segoe UI", Arial, sans-serif;
+/* ---------------- RESET & CORE ---------------- */
+* { margin:0; padding:0; box-sizing:border-box; font-family: "Segoe UI", sans-serif; }
+
+body {
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    background: #0f172a;
+    color: white;
 }
 
-body{
-    min-height:100vh;
-    background: linear-gradient(120deg,#7e9bb4,#c9d8e2,#f2f4f7);
-    overflow:hidden;
+/* ---------------- BACKGROUNDS ---------------- */
+/* Shared background wrapper to handle color shifts */
+.world-container {
+    position: absolute; width: 100%; height: 100%;
+    transition: background 1s ease;
+    z-index: -2;
 }
 
-/* ---------------- NAVBAR ---------------- */
-nav{
-    position:absolute;
-    top:0;
-    width:100%;
-    padding:30px 70px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
+/* State 1: Dark Hangar */
+body[data-step="1"] .world-container {
+    background: radial-gradient(circle at 50% 100%, #1e293b 0%, #020617 100%);
+}
+/* State 2: Blue Sky (Form) */
+body[data-step="2"] .world-container {
+    background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+}
+/* State 3: Dark Space/Night (Confirmation) */
+body[data-step="3"] .world-container {
+    background: radial-gradient(circle at center, #1a2a3a 0%, #000000 100%);
 }
 
-.nav-links{
-    display:flex;
-    align-items:center;
-    gap:40px;
-    font-size:18px;
+/* Grid lines for Hangar only */
+.grid-lines {
+    position: absolute; width: 100%; height: 100%;
+    background-image: 
+        linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+    background-size: 100px 100px;
+    perspective: 1000px;
+    transform: rotateX(20deg) scale(1.5);
+    transform-origin: bottom;
+    opacity: 0; transition: opacity 1s;
+}
+body[data-step="1"] .grid-lines { opacity: 1; }
+
+/* ---------------- THE UNIVERSAL PLANE ---------------- */
+/* ---------------- THE UNIVERSAL PLANE ---------------- */
+.universal-plane-wrapper {
+    position: absolute;
+    top: 50%; 
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 50;
+    transition: all 1s cubic-bezier(0.65, 0, 0.35, 1);
+    
+    /* 1. REMOVE FIXED BOX SIZE */
+    /* We don't want a fixed box anymore, we want a flex stage */
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+@keyframes hoverFloat {
+    0%, 100% { transform: translateY(0) scale(var(--s, 1)); }
+    50% { transform: translateY(-15px) scale(var(--s, 1)); }
+}
+.plane-img {
+    width: 75vw;
+    height: auto;
+    max-height: 65vh;
+    filter: drop-shadow(0px 50px 40px rgba(0,0,0,0.5));
+    
+    /* Change transition to include 'transform' so the zoom is smooth */
+    transition: opacity 0.5s, transform 0.5s; 
+    
+    /* Hide by default using opacity instead of display:none for smoother scaling */
+    opacity: 0;
+    position: absolute; /* Stack them on top of each other */
+     /* Default scale, JS changes this */
+    
 }
 
-.nav-links a{
-    text-decoration:none;
-    color:#111;
-    opacity:0.9;
+.plane-img.active { 
+    opacity: 1; 
+    /* The transform scale is now handled inline by JS! */
 }
 
-.menu-btn{
-    width:44px;
-    height:44px;
-    border-radius:50%;
-    background:#0c0f12;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    color:white;
-    cursor:pointer;
-    transition:0.3s;
+/* --- POSITIONS --- */
+
+/* Step 1: Hangar (Center) */
+body[data-step="1"] .universal-plane-wrapper {
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
 }
 
-.menu-btn:hover{
-    transform:scale(1.1);
+/* Step 2: Form (Move Left) */
+body[data-step="2"] .universal-plane-wrapper {
+    /* Shift wrapper left */
+    left: 25%;
+    top: 50%;
 }
 
-/* ---------------- HERO ---------------- */
-.hero{
-    height:100vh;
-    padding:120px 90px;
-    position:relative;
+/* SHRINK FOR FORM VIEW */
+/* When form is open, we reduce the width so it fits */
+body[data-step="2"] .plane-img {
+    width: 50vw; /* Smaller width for side view */
+    max-height: 50vh;
 }
 
-/* BIG LOGO */
-.brand{
-    font-size:300px;
-    font-weight:900;
-    letter-spacing:-20px;
-    color:#020b10;
-    opacity:0.95;
+/* Step 3: Fly Away */
+body[data-step="3"] .universal-plane-wrapper {
+    /* Move the WRAPPER instead of the image. 
+       This keeps the image's custom scale intact while it flies away! */
+    animation: wrapperTakeoff 2s ease-in forwards;
 }
 
-.brand sup{
-    font-size:70px;
-    vertical-align:top;
+@keyframes wrapperTakeoff {
+    0% { transform: translate(-50%, -50%); }
+    100% { transform: translate(150vw, -150vh) rotate(-15deg); }
+}
+/* 1. The Container for the Animation */
+.plane-shaker {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    /* The Bobbing Animation */
+    animation: hoverBob 4s ease-in-out infinite;
 }
 
-/* RIGHT TEXT */
-.right-text{
-    position:absolute;
-    right:120px;
-    top:200px;
+/* 2. The Keyframes */
+@keyframes hoverBob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); } /* Moves up 20px */
 }
 
-.right-text h1{
-    font-size:64px;
-    line-height:1.1;
-    font-weight:700;
-    color:#020b10;
+/* 3. OPTIONAL: Pause bobbing during takeoff (Step 3) */
+body[data-step="3"] .plane-shaker {
+    animation: none; /* Stop bobbing so it can fly away smoothly */
+}
+/* ---------------- UI SECTIONS ---------------- */
+section {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    transition: opacity 0.5s ease, visibility 0.5s;
+    opacity: 0; visibility: hidden;
+    padding: 30px 5%;
 }
 
-/* ---------------- FORM ---------------- */
-.form-card{
-    margin-top:30px;
-    width:320px;
-    padding:25px;
-    border-radius:18px;
+section.active-section {
+    opacity: 1; visibility: visible;
+}
+
+/* --- SECTION 1: HANGAR UI --- */
+.hud-panel {
+    position: absolute; bottom: 50px; left: 5%; right: 5%;
+    display: flex; justify-content: space-between; align-items: end;
+}
+.plane-name { font-size: 60px; font-weight: 900; line-height: 1; text-transform: uppercase; }
+.stats-container { display: flex; gap: 20px; margin-top: 10px; }
+.stat-box span { font-size: 12px; color: #94a3b8; letter-spacing: 1px; }
+.stat-bar { width: 100px; height: 5px; background: rgba(255,255,255,0.2); margin-top: 5px; }
+.stat-fill { height: 100%; background: #38bdf8; width: 0%; transition: 0.5s; }
+
+.controls { display: flex; gap: 20px; }
+.arrow-btn { width: 50px; height: 50px; border: 1px solid white; border-radius: 50%; background: none; color: white; cursor: pointer; }
+.select-btn { padding: 15px 40px; background: white; color: black; border: none; font-weight: bold; cursor: pointer; clip-path: polygon(10% 0, 100% 0, 100% 100%, 0 100%, 0 20%); transition: 0.3s; }
+.select-btn:hover { background: #38bdf8; transform: scale(1.05); }
+
+/* --- SECTION 2: FORM UI --- */
+#section-form {
+    display: flex; justify-content: flex-end; /* Push form to right */
+    align-items: center;
+}
+
+.form-container {
+    width: 400px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(20px);
+    padding: 40px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.4);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+    transform: translateX(50px); opacity: 0; transition: 0.8s;
+}
+/* Animate form entrance */
+body[data-step="2"] .form-container { transform: translateX(0); opacity: 1; transition-delay: 0.5s; }
+
+.form-container h2 { color: #0f172a; margin-bottom: 20px; font-size: 32px; }
+.input-box { margin-bottom: 15px; }
+.input-box input { width: 100%; padding: 15px; border-radius: 10px; border: none; outline: none; }
+.book-btn { width: 100%; padding: 15px; background: #0f172a; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+
+/* --- SECTION 3: CONFIRMATION UI --- */
+/* --- SECTION 3: HOLOGRAM TICKET --- */
+#section-confirm {
+    display: flex; justify-content: center; align-items: center;
+    perspective: 1000px;
+}
+
+.ticket {
+    width: 380px;
+    background: rgba(15, 23, 42, 0.6); /* Dark Glass */
     backdrop-filter: blur(15px);
-    background: rgba(255,255,255,0.25);
-    box-shadow:0 15px 40px rgba(0,0,0,0.15);
+    border: 1px solid rgba(56, 189, 248, 0.3); /* Blue Border */
+    border-radius: 20px;
+    padding: 30px;
+    color: white;
+    box-shadow: 0 0 50px rgba(56, 189, 248, 0.15); /* Blue Glow */
+    position: relative;
+    overflow: hidden;
+    transform: rotateX(10deg) translateY(50px);
+    opacity: 0;
+    transition: 0.8s ease-out;
 }
 
-.form-card h3{
-    margin-bottom:15px;
-    font-size:20px;
+/* Entrance Animation */
+body[data-step="3"] .ticket {
+    transform: rotateX(0deg) translateY(0);
+    opacity: 1;
+    transition-delay: 1s; /* Wait for plane to fly away */
 }
 
-.form-card input{
-    width:100%;
-    padding:12px 14px;
-    margin-bottom:12px;
-    border-radius:8px;
-    border:none;
-    outline:none;
+/* Header */
+.ticket-header {
+    display: flex; justify-content: space-between;
+    border-bottom: 2px dashed rgba(255,255,255,0.1);
+    padding-bottom: 15px; margin-bottom: 20px;
 }
+.brand-tag { font-weight: 900; letter-spacing: 2px; color: #38bdf8; }
+.flight-id { font-family: monospace; color: #94a3b8; }
 
-.form-card button{
-    width:100%;
-    padding:12px;
-    border:none;
-    border-radius:25px;
-    background:#020b10;
-    color:white;
-    cursor:pointer;
-    transition:0.3s;
+/* Route (LHR -> DXB) */
+.route {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 30px;
 }
+.route h2 { font-size: 40px; font-weight: 800; line-height: 1; }
+.plane-icon { color: #38bdf8; font-size: 20px; transform: rotate(90deg); }
 
-.form-card button:hover{
-    transform:translateY(-2px);
+/* Info Grid */
+.info-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
 }
-
-/* ---------------- ANIMATION ---------------- */
-@keyframes movePlane {
-    0%   { transform: translate(0%, -50%); }
-    50%  { transform: translate(70vw, -50%); }
-    100% { transform: translate(0%, -50%); }
+.info-item label { 
+    display: block; font-size: 10px; color: #64748b; 
+    letter-spacing: 1px; margin-bottom: 4px;
 }
-
-@keyframes flipPlane {
-    0%, 49% {
-        transform: rotate(-8deg) scaleX(1);
-    }
-    50%, 100% {
-        transform: rotate(-8deg) scaleX(-1);
-    }
+.info-item span { 
+    font-size: 16px; font-weight: 600; color: #e2e8f0; 
 }
+.info-item.full-width { grid-column: span 2; }
 
-/* 🚫 Plane is static by default */
-.plane-wrap{
-    position:absolute;
-    left:9vw;             
-    top:50%;
-    width:1100px;
-    transform: translate(0, -50%);
+/* Footer & Barcode */
+.ticket-footer {
+    margin-top: 30px; text-align: center;
 }
-
-.plane{
-    width: 1750px;
-    pointer-events:none;
-    filter: drop-shadow(0px 30px 40px rgba(0,0,0,0.25));
+.barcode {
+    height: 40px; width: 100%;
+    background: repeating-linear-gradient(
+        90deg,
+        #fff 0px, #fff 2px,
+        transparent 2px, transparent 4px,
+        #fff 4px, #fff 8px,
+        transparent 8px, transparent 9px
+    );
+    opacity: 0.5; margin-bottom: 20px;
 }
-
-/* ✅ Animation activates after submit */
-.plane-wrap.fly{
-    animation: movePlane 7s ease-in-out infinite;
+.action-btn {
+    background: #38bdf8; color: #0f172a; border:none;
+    padding: 12px 30px; border-radius: 30px;
+    font-weight: bold; cursor: pointer; transition: 0.3s;
 }
+.action-btn:hover { box-shadow: 0 0 20px #38bdf8; color: white; }
 
-.plane-wrap.fly .plane{
-    animation: flipPlane 7s ease-in-out infinite;
+/* LASER SCAN ANIMATION */
+.scan-line {
+    position: absolute; top: 0; left: 0; width: 100%; height: 5px;
+    background: #38bdf8;
+    box-shadow: 0 0 15px #38bdf8;
+    opacity: 0;
 }
-
-/* ---------------- BOTTOM ---------------- */
-.bottom{
-    position:absolute;
-    bottom:60px;
-    left:90px;
-    right:90px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
+body[data-step="3"] .scan-line {
+    animation: scanDown 2s ease-in-out forwards;
+    animation-delay: 1.5s; /* Starts after ticket appears */
 }
-
-.bottom p{
-    font-size:22px;
-    font-weight:600;
+@keyframes scanDown {
+    0% { top: 0; opacity: 1; }
+    100% { top: 100%; opacity: 0; }
 }
-
-.buttons{
-    display:flex;
-    gap:20px;
-}
-
-.btn{
-    padding:16px 34px;
-    border-radius:40px;
-    border:none;
-    background:#020b10;
-    color:white;
-    font-size:16px;
-    cursor:pointer;
-    transition:0.3s;
-}
-
-.btn:hover{
-    transform:translateY(-3px);
-    opacity:0.9;
-}
-
-/* ---------------- RESPONSIVE ---------------- */
-@media(max-width:1200px){
-    .brand{ font-size:180px; }
-    .plane{ width:520px; }
-    .right-text{ right:40px; }
-}
-
-@media(max-width:768px){
-    nav{ padding:20px; }
-    .hero{ padding:100px 30px; }
-    .brand{ font-size:120px; letter-spacing:-8px; }
-    .right-text h1{ font-size:38px; }
-    .plane{ width:380px; }
-    .bottom{ flex-direction:column; gap:20px; text-align:center; }
+.flip-x {
+    transform: scaleX(-1);
 }
 </style>
 </head>
+<body data-step="1">
 
-<body>
-
-<nav>
-    <div></div>
-
-    <div class="nav-links">
-        <a href="#">Solutions</a>
-        <a href="#">About us</a>
-        <a href="#">Contact</a>
-        <div class="menu-btn">☰</div>
-    </div>
-</nav>
-
-<section class="hero">
-    <div class="brand">VITC<sup>®</sup></div>
-
-    <div class="right-text">
-        <h1>Personalised<br>Aviation</h1>
-
-        <!-- FORM -->
-        <form class="form-card" id="flightForm">
-            <h3>Book a Flight</h3>
-            <input type="text" placeholder="Full Name" required>
-            <input type="email" placeholder="Email Address" required>
-            <input type="text" placeholder="Destination" required>
-            <button type="submit">Submit</button>
-        </form>
+    <div class="world-container">
+        <div class="grid-lines"></div>
     </div>
 
-    <!-- AIRPLANE -->
-    <div class="plane-wrap" id="plane">
-        <img 
-            class="plane"
-            src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiKQW9FkBC4Qjmt6hOEOeKLttT0VTidymIH4OtMxIGxt4X5j6ZmhnSo_MsNDgSSpyIxwTuYPneNpGkhEwW06r4TT-3pipMTHmkLDkZ5VZFYIj3hYqaiOorNIDwZgwgggzG32pJxdfRzusNd0vRjpABnufLDzrtRYuxlDln3kcrv4s4yUzy1Gq-87CsrzYQ/s1920/Adobe%20Express%20-%20file.png"
-            alt="Plane">
-    </div>
+    <div class="universal-plane-wrapper" id="planeWrapper">
+        <div class="plane-shaker">
+        </div>
+        </div>
 
-    <div class="bottom">
-        <p>More flexibility, freedom and choice!</p>
+    <section id="section-hangar" class="active-section">
+        <nav style="position:absolute; top:30px; width:90%; display:flex; justify-content:space-between;">
+            <div style="font-weight:900; font-size:20px;">HYER HANGAR</div>
+            <div>CREDITS: ∞</div>
+        </nav>
 
-        <div class="buttons">
-            <button class="btn">All Solutions</button>
-            <button class="btn">Ownership</button>
+        <div class="hud-panel">
+            <div class="info">
+                <h1 class="plane-name" id="hudName">G650ER</h1>
+                <div class="stats-container">
+                    <div class="stat-box">
+                        <span>SPEED</span>
+                        <div class="stat-bar"><div class="stat-fill" id="barSpeed"></div></div>
+                    </div>
+                    <div class="stat-box">
+                        <span>RANGE</span>
+                        <div class="stat-bar"><div class="stat-fill" id="barRange"></div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="controls">
+                <button class="arrow-btn" onclick="cyclePlane(-1)">←</button>
+                <button class="arrow-btn" onclick="cyclePlane(1)">→</button>
+                <button class="select-btn" onclick="goToStep2()">SELECT JET</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="section-form">
+        <div class="form-container">
+            <h2>Flight Details</h2>
+            <form id="bookingForm">
+                <div class="input-box">
+                    <input type="text" id="inpName" placeholder="Passenger Name" required>
+                </div>
+                <div class="input-box">
+                    <input type="text" id="inpDest" placeholder="Destination (e.g. Monaco)" required>
+                </div>
+                <div class="input-box">
+                    <input type="date" required>
+                </div>
+                <button type="submit" class="book-btn">REQUEST TAKEOFF</button>
+            </form>
+            <button onclick="goToStep1()" style="margin-top:10px; background:none; border:none; color:#0f172a; cursor:pointer; text-decoration:underline;">Back to Hangar</button>
+        </div>
+    </section>
+
+    <section id="section-confirm">
+    <div class="ticket-container">
+        <div class="ticket">
+            <div class="scan-line"></div>
+
+            <div class="ticket-header">
+                <div class="brand-tag">HYER ACCESS</div>
+                <div class="flight-id" id="ticketFlightId">HY-900</div>
+            </div>
+
+            <div class="ticket-body">
+                <div class="route">
+                    <h2 id="ticketOrigin">LHR</h2>
+                    <div class="plane-icon">✈</div>
+                    <h2 id="ticketDestCode">DXB</h2>
+                </div>
+                
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>PASSENGER</label>
+                        <span id="ticketName">John Doe</span>
+                    </div>
+                    <div class="info-item">
+                        <label>DATE</label>
+                        <span id="ticketDate">Oct 24</span>
+                    </div>
+                    <div class="info-item">
+                        <label>GATE</label>
+                        <span id="ticketGate">A-12</span>
+                    </div>
+                    <div class="info-item">
+                        <label>SEAT</label>
+                        <span id="ticketSeat">1A</span>
+                    </div>
+                    <div class="info-item full-width">
+                        <label>AIRCRAFT</label>
+                        <span id="ticketPlane">Gulfstream G650</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ticket-footer">
+                <div class="barcode"></div> <button onclick="location.reload()" class="action-btn">BOOK RETURN</button>
+            </div>
         </div>
     </div>
 </section>
 
 <script>
-const form = document.getElementById("flightForm");
-const plane = document.getElementById("plane");
+    // --- DATA ---
+    const planes = [
+        {
+            name: "Gulfstream G650",
+            speed: 95, range: 90,
+            scale: 2.3,
+            img: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiKQW9FkBC4Qjmt6hOEOeKLttT0VTidymIH4OtMxIGxt4X5j6ZmhnSo_MsNDgSSpyIxwTuYPneNpGkhEwW06r4TT-3pipMTHmkLDkZ5VZFYIj3hYqaiOorNIDwZgwgggzG32pJxdfRzusNd0vRjpABnufLDzrtRYuxlDln3kcrv4s4yUzy1Gq-87CsrzYQ/s1920/Adobe%20Express%20-%20file.png"
+        },
+        {
+            name: "Bombardier 7500",
+            speed: 85, range: 98,
+            img: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiTpI3H2VLh0Vl58ACSANfngOvivtt9TlbVfQhGtsuuoSP4VbvPDuBtnod01qt5k1FMekVw4fcFDuGSxPZxpw5gss5NLsHp5dfLNXIVQ_1QNNu5ZO-yzHl-Lu4PLpKpS4Z42QW8P-XNhiX0CxZ8cZbaiznK2Q5JaLfCLptbEhT7X78XI3F1jd0lxIdh4qg/s1200/Adobe%20Express%20-%20file%20%282%29.png"
+        },
+        {
+            name: "Cessna Citation",
+            speed: 60, range: 50,flip: true,
+            img: "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiibGU4qkBpZH3O_b6cmZzfsbF97r-8Z9GotxLeq22qFdM-Xx1EkThjH9Sum7FFs4kypAuOmqae23y_tBGjCvcRqyA-ydkQGVXJn-uBMFAmcPr83j8B0pd_-Kfmp8IcgqA3Pcyu4-s-X2uq-R6WuxVCNKu8kosyy6yG22qTunOnLTa0uRSntEBx_5FJVjY/s1381/Latitude_length.png"
+        }
+    ];
 
-form.addEventListener("submit", function(e){
-    e.preventDefault();   // stop page refresh
-    plane.classList.add("fly");  // start animation
-    alert("Flight request submitted ✈️");
+    let currentIndex = 0;
+
+    // --- DOM ELEMENTS ---
+    const planeWrapper = document.querySelector('.plane-shaker');
+    const hudName = document.getElementById('hudName');
+    const barSpeed = document.getElementById('barSpeed');
+    const barRange = document.getElementById('barRange');
+
+    // --- INIT ---
+    // --- INIT ---
+    function init() {
+    planes.forEach((p, i) => {
+        const img = document.createElement('img');
+        img.src = p.img;
+        img.classList.add('plane-img');
+        img.id = `p-${i}`;
+
+        // 1. Determine the base scale (default to 1)
+        const scaleAmount = p.scale || 1; 
+        
+        // 2. Determine if flip is needed
+        // If p.flip is true, we add 'scaleX(-1)' to the transform string
+        const flipTransform = p.flip ? 'scaleX(-1)' : '';
+
+        // 3. Apply BOTH at the same time
+        img.style.transform = `scale(${scaleAmount}) ${flipTransform}`;
+
+        // Store original scale for reference
+        img.dataset.originalScale = scaleAmount; 
+
+        if(i === 0) img.classList.add('active');
+        planeWrapper.appendChild(img);
+    });
+    updateHud();
+}
+    // --- CAROUSEL LOGIC ---
+    function cyclePlane(dir) {
+        document.getElementById(`p-${currentIndex}`).classList.remove('active');
+        
+        currentIndex += dir;
+        if(currentIndex < 0) currentIndex = planes.length - 1;
+        if(currentIndex >= planes.length) currentIndex = 0;
+
+        document.getElementById(`p-${currentIndex}`).classList.add('active');
+        updateHud();
+    }
+
+    function updateHud() {
+        hudName.innerText = planes[currentIndex].name;
+        // Simple visual stat update
+        barSpeed.style.width = planes[currentIndex].speed + "%";
+        barRange.style.width = planes[currentIndex].range + "%";
+    }
+
+    // --- FLOW LOGIC ---
+    
+    // 1. From Hangar -> Form
+    function goToStep2() {
+        document.body.setAttribute('data-step', "2");
+        toggleSection('section-hangar', 'section-form');
+    }
+
+    // 1b. Back to Hangar
+    function goToStep1() {
+        document.body.setAttribute('data-step', "1");
+        toggleSection('section-form', 'section-hangar');
+    }
+
+    // --- HELPER: Random Generator ---
+function getRandomItem(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
+// 2. Form Submit -> Confirmation
+document.getElementById('bookingForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // 1. Get User Input
+    const name = document.getElementById('inpName').value;
+    const dest = document.getElementById('inpDest').value;
+    const planeName = planes[currentIndex].name;
+
+    // 2. Generate Random Flight Details
+    const gates = ['A-12', 'B-04', 'C-99', 'P-01'];
+    const seats = ['1A', '2F', '14B', 'VIP'];
+    const randomFlightNum = "HY-" + Math.floor(Math.random() * 900 + 100);
+    const destCode = dest.substring(0, 3).toUpperCase(); // Turn "London" into "LON"
+
+    // 3. Populate Ticket
+    document.getElementById('ticketName').innerText = name;
+    document.getElementById('ticketDestCode').innerText = destCode;
+    document.getElementById('ticketPlane').innerText = planeName;
+    document.getElementById('ticketDate').innerText = new Date().toLocaleDateString('en-US', {month:'short', day:'numeric'});
+    
+    // Randoms
+    document.getElementById('ticketFlightId').innerText = randomFlightNum;
+    document.getElementById('ticketGate').innerText = getRandomItem(gates);
+    document.getElementById('ticketSeat').innerText = getRandomItem(seats);
+
+    // 4. Trigger Animation
+    document.body.setAttribute('data-step', "3");
+    toggleSection('section-form', 'section-confirm');
 });
-</script>
 
+    // Helper to switch sections
+    function toggleSection(hideId, showId) {
+        document.getElementById(hideId).classList.remove('active-section');
+        // Small delay to allow fade out
+        setTimeout(() => {
+            document.getElementById(showId).classList.add('active-section');
+        }, 500);
+    }
+
+    // Run
+    init();
+
+</script>
 </body>
 </html>
